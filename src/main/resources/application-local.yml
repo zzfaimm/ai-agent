@@ -3,7 +3,7 @@ spring:
     name: ai-agent
   ai:
     dashscope:
-      api-key: sk-51a34bf7b4864845aa06832ce67e2cd5
+      api-key:
       chat:
         options:
           model: qwen-plus
@@ -16,7 +16,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/ai_llm?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
-    password: 199812abC.
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
 #  datasource:
 #    url: jdbc:postgresql://rm-cn-2684pl3mx000157o.rwlb.rds.aliyuncs.com:5432/yu_ai_agant
@@ -25,5 +25,5 @@ spring:
 
 # searchApi
 search-api:
-  api-key: MkPen6f1uvqSojJvqj5Q59CL
+  api-key:
 
