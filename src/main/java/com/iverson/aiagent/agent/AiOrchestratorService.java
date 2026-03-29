@@ -57,16 +57,28 @@ public class AiOrchestratorService {
 //    }
 
     public String run(String input) {
-
+        System.out.println("\n========================================");
+        System.out.println("开始执行多智能体协作流程");
+        System.out.println("========================================");
+        
         // 1️⃣ 生成计划
+        System.out.println("1. 生成执行计划...");
         Plan plan = plannerAgent.plan(input);
+        System.out.println("执行计划生成完成，任务数量: " + plan.getTasks().size());
+        System.out.println("任务列表:");
+        for (Task task : plan.getTasks()) {
+            System.out.println("  - " + task.getName() + " (依赖: " + task.getDependsOn() + ")");
+        }
 
         // 2️⃣ 初始化状态
+        System.out.println("\n2. 初始化共享状态...");
         SharedState state = new SharedState();
         state.setUserInput(input);
         state.setCurrentContext(input);
+        System.out.println("共享状态初始化完成，用户输入: " + input);
 
         // 3️⃣ 任务执行（依赖驱动）
+        System.out.println("\n3. 开始执行任务...");
         List<Task> tasks = plan.getTasks();
         List<String> executed = new ArrayList<>();
 
@@ -83,6 +95,9 @@ public class AiOrchestratorService {
                     continue;
                 }
 
+                System.out.println("\n执行任务: " + task.getName());
+                System.out.println("依赖任务: " + task.getDependsOn());
+                
                 BaseAgent agent = agentRegistry.getAgent(task.getName());
 
                 if (agent == null) {
@@ -90,11 +105,18 @@ public class AiOrchestratorService {
                 }
 
                 // 🔥 执行
+                System.out.println("开始执行智能体: " + agent.getName());
                 agent.run(state);
+                System.out.println("智能体执行完成: " + agent.getName());
 
                 executed.add(task.getName());
+                System.out.println("已完成任务数量: " + executed.size() + "/" + tasks.size());
             }
         }
+
+        System.out.println("\n========================================");
+        System.out.println("多智能体协作流程执行完成");
+        System.out.println("========================================");
 
         return state.getCurrentContext();
     }
