@@ -1,5 +1,7 @@
 package com.iverson.aiagent.controller;
 
+
+import com.iverson.aiagent.agent.impl.MyManus;
 import com.iverson.aiagent.app.LoveApp;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.model.ChatModel;
@@ -75,7 +77,17 @@ public class AiController {
     }
 
 
-
+    /**
+     * 流式调用 Manus 超级智能体
+     *
+     * @param message
+     * @return
+     */
+    @GetMapping("/manus/chat")
+    public SseEmitter doChatWithManus(String message) {
+        MyManus yuManus = new MyManus(allTools, dashscopeChatModel);
+        return yuManus.runStream(message);
+    }
 
 
 

@@ -1,4 +1,4 @@
-package com.iverson.aiagent.agent;
+package com.iverson.aiagent.agent.base;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public abstract class ReActAgent extends BaseAgent{
+public abstract class ReActAgent extends BaseAgent {
     /**
      *处理当前状态并决定下一步行动
      * @param

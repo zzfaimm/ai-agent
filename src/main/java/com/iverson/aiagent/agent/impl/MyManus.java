@@ -1,6 +1,7 @@
-package com.iverson.aiagent.agent;
+package com.iverson.aiagent.agent.impl;
 
 import com.iverson.aiagent.advisor.MyLoggerAdvisor;
+import com.iverson.aiagent.agent.base.ToolCallAgent;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;

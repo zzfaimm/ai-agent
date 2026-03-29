@@ -91,4 +91,30 @@
         </plugins>
     </build>
 
+    <repositories>
+        <!-- 优先使用Spring仓库，因为它肯定有最新的Spring AI -->
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <!-- 阿里云仓库作为备份 -->
+        <repository>
+            <id>aliyun-maven</id>
+            <name>Aliyun Maven</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+    </repositories>
+
 </project>

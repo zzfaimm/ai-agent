@@ -33,6 +33,9 @@ import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvis
 @Slf4j
 public class LoveApp {
 
+    @Resource
+    private ToolCallback[] allTools;
+
     private final ChatClient chatClient;
 
     private static final String SYSTEM_PROMPT = "扮演深耕恋爱心理领域的专家。开场向用户表明身份，告知用户可倾诉恋爱难题。" +
@@ -124,6 +127,7 @@ public class LoveApp {
                 .user(message)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .tools(allTools)
                 .stream()
                 .content();
     }
@@ -202,9 +206,13 @@ public class LoveApp {
         return content;
     }
 
+    /**
+     * doChatWithTools是测试工具调用，allTools里面定义了各种工具，来自于ToolRegistration类
+     * @param
+     * @return
+     */
 
-    @Resource
-    private ToolCallback[] allTools;
+
 
     public String doChatWithTools(String message, String chatId) {
         ChatResponse response = chatClient
@@ -222,6 +230,12 @@ public class LoveApp {
         return content;
     }
 
+    /**
+     * doChatWithMcp是测试MCP，toolCallbackProvider里面定义了各种工具，来自于ToolRegistration类
+     * @param
+     * @return
+     */
+
 
     @Resource
     private ToolCallbackProvider toolCallbackProvider;
@@ -234,7 +248,7 @@ public class LoveApp {
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
                 // 开启日志，便于观察效果
                 .advisors(new MyLoggerAdvisor())
-                .tools(toolCallbackProvider)
+                .tools(toolCallbackProvider, allTools)
                 .call()
                 .chatResponse();
         String content = response.getResult().getOutput().getText();
