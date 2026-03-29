@@ -21,7 +21,7 @@ spring:
 #  datasource:
 #    url: jdbc:postgresql://rm-cn-2684pl3mx000157o.rwlb.rds.aliyuncs.com:5432/yu_ai_agant
 #    username: my_user
-#    password:
+#    password: 199812abC_
 
 # searchApi
 search-api:
