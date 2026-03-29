@@ -1,118 +1,144 @@
 package com.iverson.aiagent.agent.planner;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.iverson.aiagent.agent.base.BaseAgent;
-import com.iverson.aiagent.agent.registry.AgentRegistry;
+import com.iverson.aiagent.agent.model.AgentResult;
+import com.iverson.aiagent.agent.model.SharedState;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Component;
-import org.springframework.ai.chat.model.ChatModel;
+
 import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * PlannerAgent（核心大脑）
- *
- * 作用：
- * 1. 根据用户输入决定执行哪些Agent
- * 2. 动态生成任务流程（而不是写死）
+ * 规划智能体
+ * 用于生成多智能体协作的任务计划
  */
-@Component
 @Slf4j
+@Component
 public class PlannerAgent extends BaseAgent {
 
-    private final AgentRegistry agentRegistry;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PlannerAgent(ChatModel dashscopeChatModel, AgentRegistry agentRegistry) {
-        this.agentRegistry = agentRegistry;
-        this.setChatClient(ChatClient.builder(dashscopeChatModel).build());
+    public PlannerAgent() {
+        this.setName("planner");
+        this.setSystemPrompt("""
+        你是一个多智能体协作规划专家。你的任务是根据用户的输入，生成一个合理的多智能体协作任务计划。
+        
+        可用智能体列表（必须使用以下名称）：
+        1. analysis - 商品分析智能体：分析商品的目标用户、核心卖点、使用场景
+        2. copywriting - 文案生成智能体：根据分析结果生成吸引人的商品标题和描述
+        3. seo - SEO优化智能体：提取关键词，优化标题和描述，提升搜索引擎排名
+        
+        请根据以下步骤生成计划：
+        1. 分析用户输入，确定任务类型和目标
+        2. 从可用智能体列表中选择需要的智能体
+        3. 规划智能体之间的协作顺序和依赖关系
+        
+        输出格式为JSON：
+        {
+          "tasks": [
+            {
+              "name": "智能体名称（必须使用英文名称：analysis/copywriting/seo）",
+              "dependsOn": ["依赖的智能体名称列表"]
+            }
+          ]
+        }
+        
+        注意：
+        - 智能体名称必须使用英文：analysis、copywriting、seo
+        - 依赖关系应该合理，确保任务按照正确的顺序执行
+        - 不要包含不必要的智能体
+        - 通常的执行顺序是：analysis -> copywriting -> seo
+        """);
     }
 
-    public Plan plan(String userInput) {
-        String systemPrompt = buildDynamicPrompt();
-        String userPrompt = "用户需求：" + userInput + "\n请生成任务计划。";
-
-        String response = getChatClient().prompt()
-                .system(systemPrompt)
-                .user(userPrompt)
+    /**
+     * 生成任务计划
+     * @param input 用户输入
+     * @return 任务计划
+     */
+    public Plan plan(String input) {
+        log.info("{}: 开始生成任务计划，用户输入: {}", getName(), input);
+        
+        // 构建提示词
+        String prompt = getSystemPrompt() + "\n\n用户输入：\n" + input;
+        
+        // 调用LLM生成计划
+        ChatClient chatClient = getChatClient();
+        if (chatClient == null) {
+            log.error("{}: 聊天客户端未初始化", getName());
+            return new Plan(new ArrayList<>());
+        }
+        
+        String response = chatClient.prompt()
+                .messages(new UserMessage(prompt))
                 .call()
                 .content();
-        log.info(response);
-        return parsePlan(response);
-    }
-
-    private String buildDynamicPrompt() {
-        String agentInfo = agentRegistry.getAgentDefinitions().stream()
-                .map(def -> String.format("""
-                - 名称: %s
-                  描述: %s
-                  能力详情: %s
-                  输入: %s
-                  输出: %s
-                """, def.getName(), def.getDescription(), def.getDetail(),
-                        String.join(", ", def.getRequiredInputs()),
-                        String.join(", ", def.getOutputs())))
-                .collect(Collectors.joining("\n"));
-
-        return """
-            你是一个任务规划专家。根据用户需求，选择合适的Agent并安排执行顺序。
-
-            ## 可用Agent
-            %s
-
-            ## 规划规则
-            - 如果某个Agent的输入依赖前一个Agent的输出，请在dependsOn中指明。
-            - 如果任务可以并行执行，请标注parallelGroups。
-            - 只返回JSON，不要有其他文字。
-
-            ## 返回格式示例
-            {
-              "tasks": [
-                {"name": "analysis", "dependsOn": []},
-                {"name": "copywriting", "dependsOn": ["analysis"]}
-              ]
-            }
-
-            """.formatted(agentInfo);
-    }
-
-    private Plan parsePlan(String response) {
+        
+        log.info("{}: 生成的计划: {}", getName(), response);
+        
         try {
-            JsonNode root = objectMapper.readTree(response);
-            List<Task> tasks = new ArrayList<>();
-            JsonNode tasksNode = root.get("tasks");
-            if (tasksNode.isArray()) {
-                for (JsonNode t : tasksNode) {
-                    String name = t.get("name").asText();
-                    List<String> dependsOn = new ArrayList<>();
-                    JsonNode dependsNode = t.get("dependsOn");
-                    if (dependsNode.isArray()) {
-                        for (JsonNode d : dependsNode) {
-                            dependsOn.add(d.asText());
-                        }
-                    }
-                    tasks.add(new Task(name, dependsOn));
-                }
-            }
-            // 可选：解析parallelGroups
-            return new Plan(tasks);
+            // 解析计划
+            Plan plan = objectMapper.readValue(response, Plan.class);
+            log.info("{}: 计划解析成功，任务数量: {}", getName(), plan.getTasks().size());
+            return plan;
         } catch (Exception e) {
-            log.error("Failed to parse plan: {}", response, e);
-            // 降级：返回默认顺序
-            List<Task> defaultTasks = List.of(
-                    new Task("analysis", List.of()),
-                    new Task("copywriting", List.of("analysis")),
-                    new Task("seo", List.of("copywriting"))
-            );
-            return new Plan(defaultTasks);
+            log.error("{}: 解析计划失败", getName(), e);
+            return new Plan(new ArrayList<>());
         }
     }
 
     @Override
+    protected AgentResult doRun(SharedState sharedState) {
+        log.info("{}: 开始执行规划任务", getName());
+        
+        // 获取用户输入
+        String input = sharedState.getUserInput();
+        if (input == null) {
+            input = sharedState.getCurrentContext();
+        }
+        
+        if (input == null) {
+            log.warn("{}: 没有找到用户输入", getName());
+            AgentResult result = new AgentResult();
+            result.setSuccess(false);
+            result.setActionType(AgentResult.ActionType.RETRY);
+            return result;
+        }
+        
+        // 生成计划
+        Plan plan = plan(input);
+        
+        // 将计划转换为字符串
+        String planJson;
+        try {
+            planJson = objectMapper.writeValueAsString(plan);
+        } catch (Exception e) {
+            log.error("{}: 计划转换失败", getName(), e);
+            AgentResult result = new AgentResult();
+            result.setSuccess(false);
+            result.setActionType(AgentResult.ActionType.RETRY);
+            return result;
+        }
+        
+        // 存储计划
+        sharedState.put(this.getName(), planJson, this.getName());
+        sharedState.putStructuredData(this.getName(), plan, this.getName());
+        
+        // 创建AgentResult
+        AgentResult result = new AgentResult();
+        result.setSuccess(true);
+        result.setFinalAnswer(planJson);
+        result.setActionType(AgentResult.ActionType.FINISH);
+        
+        return result;
+    }
+
+    @Override
     public String step() {
-        return null;
+        // 此方法不会被调用，因为我们重写了doRun方法
+        return "PlannerAgent不需要执行step方法";
     }
 }

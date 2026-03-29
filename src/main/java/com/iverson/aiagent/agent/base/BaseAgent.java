@@ -1,5 +1,6 @@
 package com.iverson.aiagent.agent.base;
 
+import com.iverson.aiagent.agent.model.AgentResult;
 import com.iverson.aiagent.agent.model.AgentState;
 import com.iverson.aiagent.agent.model.SharedState;
 import lombok.Data;
@@ -37,7 +38,7 @@ public abstract class BaseAgent {
     protected SharedState sharedState;
 
     // 状态
-    private AgentState state = AgentState.IDLE;
+    protected AgentState state = AgentState.IDLE;
 
     // 执行控制
     private int maxSteps = 10;
@@ -208,114 +209,21 @@ public abstract class BaseAgent {
     }
 
 
-    public String run(SharedState sharedState) {
+    public AgentResult run(SharedState sharedState) {
         log.info("{}: 开始执行，共享状态: {}", getName(), sharedState);
 
-        if (this.state != AgentState.IDLE) {
-            log.warn("{}: 无法从状态运行代理: {}", getName(), this.state);
-            throw new RuntimeException("Agent状态错误: " + this.state);
-        }
-
-        this.state = AgentState.RUNNING;
-        log.info("{}: 状态变更为: {}", getName(), state);
-        this.sharedState = sharedState;
-        log.info("{}: 已设置共享状态", getName());
-
-        // 优先使用结构化输入
-        Object structuredInput = sharedState.getCurrentStructuredInput();
-        String input = structuredInput != null ? structuredInput.toString() : sharedState.getUserInput();
-        log.info("{}: 使用输入: {}", getName(), input);
-        
-        if (input == null) {
-            input = sharedState.getUserInput();
-            log.info("{}: 使用用户输入: {}", getName(), input);
-        }
-
-        messageList.add(new UserMessage(input));
-        log.info("{}: 已添加输入到消息上下文", getName());
-
-        String lastStepResult = null;
-
         try {
-
-            // =====================
-            // 1️⃣ 执行阶段
-            // =====================
-            for (int i = 0; i < maxSteps && state != AgentState.FINISHED; i++) {
-
-                currentStep = i + 1;
-                log.info("{}: 执行步骤 {}/{}", getName(), currentStep, maxSteps);
-
-                String stepResult = step();
-                log.info("{}: 步骤 {} 结果: {}", getName(), currentStep, stepResult);
-
-                lastStepResult = stepResult;
-
-                // 🔥 记录执行轨迹
-                if("思考完成 - 无需行动".equalsIgnoreCase(stepResult)) {
-                    sharedState.addTrace(this.name,
-                            "Step " + currentStep + ": " + stepResult);
-                    log.info("{}: 已添加执行轨迹", getName());
-                }
-            }
-
-            // =====================
-            // 2️⃣ 判断结束原因
-            // =====================
-            String finishReason;
-
-            if (currentStep >= maxSteps) {
-                finishReason = "达到最大步骤限制";
-                this.state = AgentState.FINISHED;
-                log.info("{}: 达到最大步骤限制", getName());
-            } else if (state == AgentState.FINISHED) {
-                finishReason = "任务正常完成";
-                log.info("{}: 任务正常完成", getName());
-            } else {
-                finishReason = "未知结束";
-                log.warn("{}: 未知结束原因", getName());
-            }
-
-            // =====================
-            // 3️⃣ 🔥 总结阶段（核心升级）
-            // =====================
-            log.info("{}: 开始总结，结束原因: {}", getName(), finishReason);
-            String finalResult = summarize(finishReason);
-            log.info("{}: 总结完成，结果: {}", getName(), finalResult);
-
-            // =====================
-            // 4️⃣ 写入状态
-            // =====================
-            log.info("{}: 最终总结：{}", this.name, finalResult);
-            
-            // 同时存储结构化数据和普通数据
-            sharedState.put(this.name, finalResult);
-            sharedState.putStructuredData(this.name, finalResult);
-            log.info("{}: 已将结果写入共享状态", getName());
-
-            return finalResult;
-
+            return doRun(sharedState);
         } catch (Exception e) {
-
-            this.state = AgentState.ERROR;
             log.error("{}: 执行异常", getName(), e);
-
-            // 🔥 错误也做总结（非常关键）
-            String errorResult = summarize("执行异常: " + e.getMessage());
-            log.info("{}: 错误总结: {}", getName(), errorResult);
-
-            sharedState.put(this.name, errorResult);
-            sharedState.putStructuredData(this.name, errorResult);
-            log.info("{}: 已将错误结果写入共享状态", getName());
-
-            return errorResult;
-
-        } finally {
-            log.info("{}: 开始清理资源", getName());
-            cleanup();
-            log.info("{}: 资源清理完成", getName());
+            AgentResult result = new AgentResult();
+            result.setSuccess(false);
+            result.setActionType(AgentResult.ActionType.RETRY);
+            return result;
         }
     }
+
+    protected abstract AgentResult doRun(SharedState sharedState);
 
     private String summarize(String finishReason) {
         log.info("{}: 开始总结，结束原因: {}", getName(), finishReason);

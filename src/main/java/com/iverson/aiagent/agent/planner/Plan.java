@@ -13,4 +13,8 @@ public class Plan {
     public Plan(List<Task> tasks) {
         this.tasks = tasks;
     }
+
+    public Plan() {
+        // 无参构造函数，用于Jackson反序列化
+    }
 }

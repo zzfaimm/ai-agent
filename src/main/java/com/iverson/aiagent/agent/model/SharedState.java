@@ -27,6 +27,9 @@ public class SharedState {
 
     // 新增：执行轨迹（按顺序存储每个Agent的每一步）
     private List<String> traces = new ArrayList<>();
+    
+    // 新增：版本化状态存储，支持回溯和审计
+    private Map<String, List<StateSnapshot>> stateMap = new HashMap<>();
 
     /**
      * 添加执行轨迹
@@ -50,6 +53,38 @@ public class SharedState {
     public void putStructuredData(String key, Object value) {
         structuredData.put(key, value);
         // 同时更新currentContext，确保向后兼容
+        this.currentContext = value.toString();
+    }
+    
+    /**
+     * 存储带版本的状态数据
+     * @param key 键
+     * @param value 值
+     * @param agentName 智能体名称
+     */
+    public void put(String key, Object value, String agentName) {
+        // 存储到普通数据中
+        data.put(key, value);
+        // 存储到版本化状态中
+        stateMap.computeIfAbsent(key, k -> new ArrayList<>())
+                .add(new StateSnapshot(value, agentName));
+        // 更新当前上下文
+        this.currentContext = value.toString();
+    }
+    
+    /**
+     * 存储带版本的结构化数据
+     * @param key 键
+     * @param value 结构化数据
+     * @param agentName 智能体名称
+     */
+    public void putStructuredData(String key, Object value, String agentName) {
+        // 存储到结构化数据中
+        structuredData.put(key, value);
+        // 存储到版本化状态中
+        stateMap.computeIfAbsent(key, k -> new ArrayList<>())
+                .add(new StateSnapshot(value, agentName));
+        // 更新当前上下文
         this.currentContext = value.toString();
     }
     
@@ -93,5 +128,58 @@ public class SharedState {
         }
         // 否则返回用户输入
         return userInput;
+    }
+    
+    /**
+     * 获取最新的状态值
+     * @param key 键
+     * @return 最新的状态值
+     */
+    public Object getLatest(String key) {
+        List<StateSnapshot> list = stateMap.get(key);
+        return list == null ? null : list.get(list.size() - 1).getValue();
+    }
+    
+    /**
+     * 获取状态的历史版本
+     * @param key 键
+     * @return 状态的历史版本列表
+     */
+    public List<StateSnapshot> getHistory(String key) {
+        return stateMap.getOrDefault(key, new ArrayList<>());
+    }
+    
+    /**
+     * 获取状态的特定版本
+     * @param key 键
+     * @param index 版本索引
+     * @return 特定版本的状态值
+     */
+    public Object getVersion(String key, int index) {
+        List<StateSnapshot> list = stateMap.get(key);
+        if (list == null || index < 0 || index >= list.size()) {
+            return null;
+        }
+        return list.get(index).getValue();
+    }
+    
+    /**
+     * 回滚到状态的特定版本
+     * @param key 键
+     * @param index 版本索引
+     * @return 是否回滚成功
+     */
+    public boolean rollbackToVersion(String key, int index) {
+        List<StateSnapshot> list = stateMap.get(key);
+        if (list == null || index < 0 || index >= list.size()) {
+            return false;
+        }
+        StateSnapshot snapshot = list.get(index);
+        data.put(key, snapshot.getValue());
+        if (structuredData.containsKey(key)) {
+            structuredData.put(key, snapshot.getValue());
+        }
+        this.currentContext = snapshot.getValue().toString();
+        return true;
     }
 }

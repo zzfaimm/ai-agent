@@ -13,4 +13,8 @@ public class Task {
         this.name = name;
         this.dependsOn = dependsOn;
     }
+
+    public Task() {
+        // 无参构造函数，用于Jackson反序列化
+    }
 }

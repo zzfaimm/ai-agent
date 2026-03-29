@@ -4,6 +4,7 @@ import com.iverson.aiagent.agent.impl.AnalysisAgent;
 import com.iverson.aiagent.agent.impl.CopywritingAgent;
 import com.iverson.aiagent.agent.impl.SeoAgent;
 import com.iverson.aiagent.agent.planner.AgentDefinition;
+import com.iverson.aiagent.agent.planner.PlannerAgent;
 import jakarta.annotation.PostConstruct;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
@@ -78,6 +79,24 @@ public class AgentFactoryConfig {
                         "输入：商品名称、分析结果、文案初稿（文本）。输出：包含关键词列表、优化后标题、优化后描述的JSON对象。",
                         List.of("商品名称", "分析结果", "文案"),
                         List.of("SEO优化结果JSON")
+                )
+        );
+
+        // 注册 PlannerAgent
+        registry.register("planner",
+                () -> {
+                    PlannerAgent agent = new PlannerAgent();
+                    agent.setChatClient(ChatClient.builder(dashscopeChatModel).build());
+                    agent.setMaxSteps(10);
+                    return agent;
+                },
+                new AgentDefinition(
+                        "planner",
+                        "任务规划",
+                        "根据用户输入生成多智能体协作的任务计划。",
+                        "输入：用户输入的商品信息。输出：包含任务列表和依赖关系的JSON对象。",
+                        List.of("用户输入"),
+                        List.of("任务计划JSON")
                 )
         );
     }

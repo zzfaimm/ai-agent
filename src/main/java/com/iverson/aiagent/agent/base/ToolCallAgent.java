@@ -213,4 +213,10 @@ public class ToolCallAgent extends ReActAgent {
         log.info(result);
         return result;
     }
+
+    @Override
+    public String step() {
+        // 此方法不会被调用，因为我们重写了doRun方法
+        return "ToolCallAgent不需要执行step方法";
+    }
 }
