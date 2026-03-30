@@ -136,7 +136,7 @@ public class SimpleToolCallAgent extends SimpleReActAgent {
                 // 只添加带有终止工具调用的助手消息
                 if (assistantMessage.getToolCalls() != null && !assistantMessage.getToolCalls().isEmpty()) {
                     boolean hasTerminateTool = assistantMessage.getToolCalls().stream()
-                            .anyMatch(toolCall -> "terminate".equals(toolCall.name()));
+                            .anyMatch(toolCall -> "doTerminate".equals(toolCall.name()));
                     if (hasTerminateTool) {
                         addAssistantMessageToImportantList(assistantMessage);
                         break;

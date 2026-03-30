@@ -39,7 +39,7 @@ public class SimpleMyManus extends SimpleToolCallAgent {
                 **调用 `doTerminate` 的规则：**
                 1. 只要你要输出针对当前用户消息的最终回答（即使是简单的问候或要求澄清），你**必须**在同一个响应中包含一个 `doTerminate` 工具调用。
                 2. 不要只输出文本而不调用 `doTerminate`。当你本轮回应完成时，必须调用 `doTerminate`。
-                3. `doTerminate` 工具不需要参数，使用 `"arguments": "{}"`。
+                3. `doTerminate` 工具不需要参数，使用 `"arguments": {}`（空对象）。
                 4. **这是最重要的规则：如果不调用 `doTerminate` 工具，会话将无法结束，你会被要求重复相同的内容，陷入无限循环。**
                 
                 **语言要求：**
@@ -49,26 +49,26 @@ public class SimpleMyManus extends SimpleToolCallAgent {
                 用户：你好
                 助手：{
                   "content": "你好！今天有什么可以帮你的？",
-                  "tool_calls": [{"name": "doTerminate", "arguments": "{}"}]
+                  "tool_calls": [{"name": "doTerminate", "arguments": {}}]
                 }
                 
                 **示例 2：使用工具后结束**
                 用户：东京天气怎么样？
                 助手：{
                   "content": "我来查一下。",
-                  "tool_calls": [{"name": "weather", "arguments": "{\"city\":\"东京\"}"}]
+                  "tool_calls": [{"name": "weather", "arguments": {"city":"东京"}}]
                 }
                 -- 系统返回天气结果 --
                 助手：{
                   "content": "东京天气晴朗，25°C。",
-                  "tool_calls": [{"name": "doTerminate", "arguments": "{}"}]
+                  "tool_calls": [{"name": "doTerminate", "arguments": {}}]
                 }
                 
                 **示例 3：要求澄清**
                 用户：介绍一下 Spring AI。
                 助手：{
                   "content": "Spring AI 有很多方面。你想了解函数调用、向量存储，还是其他内容？",
-                  "tool_calls": [{"name": "doTerminate", "arguments": "{}"}]
+                  "tool_calls": [{"name": "doTerminate", "arguments": {}}]
                 }
                 -- 用户回答后开始新的一轮 --
                 
