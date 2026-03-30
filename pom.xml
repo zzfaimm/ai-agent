@@ -184,6 +184,21 @@
             <version>7.2.5</version>
         </dependency>
 
+        <!-- Source: https://mvnrepository.com/artifact/com.baomidou/mybatis-plus-boot-starter -->
+        <!-- MyBatis-Plus for Spring Boot 3 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>3.5.10</version>
+        </dependency>
+
+        <!-- 分页插件所需的 SQL 解析器（3.5.9+ 版本必须） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-jsqlparser</artifactId>
+            <version>3.5.10</version>
+        </dependency>
+
     </dependencies>
 
     <build>
