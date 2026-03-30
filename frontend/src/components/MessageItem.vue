@@ -62,7 +62,7 @@ const renderedContent = computed(() => {
 .message-bubble {
   padding: 14px 18px;
   border-radius: 20px;
-  line-height: 1.55;
+  line-height: 1.6;
   word-wrap: break-word;
   text-align: left;
   max-width: 100%;
@@ -73,6 +73,68 @@ const renderedContent = computed(() => {
 
 .message-bubble:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Markdown 样式 */
+.message-bubble h1,
+.message-bubble h2,
+.message-bubble h3,
+.message-bubble h4,
+.message-bubble h5,
+.message-bubble h6 {
+  margin: 16px 0 8px 0;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.message-bubble h1 {
+  font-size: 24px;
+}
+
+.message-bubble h2 {
+  font-size: 20px;
+}
+
+.message-bubble h3 {
+  font-size: 16px;
+}
+
+.message-bubble p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+.message-bubble ul,
+.message-bubble ol {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.message-bubble li {
+  margin: 4px 0;
+  line-height: 1.6;
+}
+
+.message-bubble code {
+  background-color: #f0f0f0;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.message-bubble pre {
+  background-color: #f0f0f0;
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+
+.message-bubble pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
 }
 
 .user-message .message-bubble {
