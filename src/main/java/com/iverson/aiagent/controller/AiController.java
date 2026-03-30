@@ -1,8 +1,10 @@
 package com.iverson.aiagent.controller;
 
 
-import com.iverson.aiagent.agent.impl.MyManus;
+import com.iverson.aiagent.agent.simpleagent.base.SimpleMyManus;
 import com.iverson.aiagent.app.LoveApp;
+import com.iverson.aiagent.chatmemory.DatabaseChatMemory;
+import com.iverson.aiagent.chatmemory.mapper.ChatMemoryMapper;
 import jakarta.annotation.Resource;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
@@ -14,6 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.util.UUID;
 
 /**
  * @ClassName: AiController
@@ -33,6 +36,9 @@ public class AiController {
 
     @Resource
     private ChatModel dashscopeChatModel;
+    
+    @Resource
+    private ChatMemoryMapper chatMemoryMapper;
 
     @GetMapping("/love_app/chat/sync")
     public String doChatWithLoveAppSync(String message, String chatId) {
@@ -81,31 +87,19 @@ public class AiController {
      * 流式调用 Manus 超级智能体
      *
      * @param message
+     * @param chatId
      * @return
      */
     @GetMapping("/manus/chat")
-    public SseEmitter doChatWithManus(String message) {
-        MyManus yuManus = new MyManus(allTools, dashscopeChatModel);
-        return yuManus.runStream(message);
+    public SseEmitter doChatWithManus(String message, String chatId) {
+        if (chatId == null || chatId.isEmpty()) {
+            chatId = UUID.randomUUID().toString();
+        }
+        SimpleMyManus simpleMyManus = new SimpleMyManus(allTools, dashscopeChatModel);
+        DatabaseChatMemory databaseChatMemory = new DatabaseChatMemory(chatMemoryMapper);
+        simpleMyManus.initChatMemory(databaseChatMemory, chatId);
+        return simpleMyManus.runStream(message);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 }

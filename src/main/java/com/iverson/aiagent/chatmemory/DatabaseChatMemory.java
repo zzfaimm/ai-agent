@@ -1,5 +1,8 @@
 package com.iverson.aiagent.chatmemory;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.iverson.aiagent.chatmemory.entity.ChatMemoryEntity;
+import com.iverson.aiagent.chatmemory.mapper.ChatMemoryMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -9,9 +12,11 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,23 +31,20 @@ public class DatabaseChatMemory implements ChatMemory {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseChatMemory.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final JdbcTemplate jdbcTemplate;
+    private final ChatMemoryMapper chatMemoryMapper;
 
-    public DatabaseChatMemory(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    public DatabaseChatMemory(ChatMemoryMapper chatMemoryMapper) {
+        this.chatMemoryMapper = chatMemoryMapper;
         initTable();
     }
 
-
     /**
      * 初始化数据库表：如果表不存在则创建。
-     * 表结构：conversation_id VARCHAR(255) PRIMARY KEY, messages JSON
+     * 表结构：conversation_id VARCHAR(255) PRIMARY KEY, messages JSON, created_at DATETIME, updated_at DATETIME
      */
-    private void initTable() {
-        String sql = "CREATE TABLE IF NOT EXISTS chat_memory_json (" +
-                "conversation_id VARCHAR(255) PRIMARY KEY, " +
-                "messages JSON)";
-        jdbcTemplate.execute(sql);
+    public void initTable() {
+        // MyBatis Plus会自动处理表结构，这里可以留空或添加自定义初始化逻辑
+        logger.info("DatabaseChatMemory initialized");
     }
 
     @Override
@@ -63,8 +65,9 @@ public class DatabaseChatMemory implements ChatMemory {
 
     @Override
     public void clear(String conversationId) {
-        String sql = "DELETE FROM chat_memory_json WHERE conversation_id = ?";
-        jdbcTemplate.update(sql, conversationId);
+        QueryWrapper<ChatMemoryEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("conversation_id", conversationId);
+        chatMemoryMapper.delete(queryWrapper);
     }
 
     /**
@@ -73,18 +76,21 @@ public class DatabaseChatMemory implements ChatMemory {
      * @return 消息列表（若不存在则返回空列表）
      */
     private List<Message> getConversationMessages(String conversationId) {
-        String sql = "SELECT messages FROM chat_memory_json WHERE conversation_id = ?";
         try {
-            return jdbcTemplate.query(sql, rs -> {
-                if (!rs.next()) {
-                    return new ArrayList<>();
-                }
-                String json = rs.getString("messages");
-                if (json == null || json.isEmpty()) {
-                    return new ArrayList<>();
-                }
-                return deserializeMessages(json);
-            }, conversationId);
+            QueryWrapper<ChatMemoryEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("conversation_id", conversationId);
+            ChatMemoryEntity entity = chatMemoryMapper.selectOne(queryWrapper);
+            
+            if (entity == null) {
+                return new ArrayList<>();
+            }
+            
+            String json = entity.getMessages();
+            if (json == null || json.isEmpty()) {
+                return new ArrayList<>();
+            }
+            
+            return deserializeMessages(json);
         } catch (Exception e) {
             logger.error("Failed to fetch messages for conversation: {}", conversationId, e);
             return new ArrayList<>();
@@ -130,16 +136,24 @@ public class DatabaseChatMemory implements ChatMemory {
             return;
         }
 
-        boolean exists = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM chat_memory_json WHERE conversation_id = ?",
-                Integer.class, conversationId) > 0;
+        QueryWrapper<ChatMemoryEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("conversation_id", conversationId);
+        ChatMemoryEntity entity = chatMemoryMapper.selectOne(queryWrapper);
 
-        if (exists) {
-            jdbcTemplate.update("UPDATE chat_memory_json SET messages = ? WHERE conversation_id = ?",
-                    json, conversationId);
+        LocalDateTime now = LocalDateTime.now();
+        if (entity != null) {
+            // 更新现有记录
+            entity.setMessages(json);
+            entity.setUpdatedAt(now);
+            chatMemoryMapper.updateById(entity);
         } else {
-            jdbcTemplate.update("INSERT INTO chat_memory_json (conversation_id, messages) VALUES (?, ?)",
-                    conversationId, json);
+            // 创建新记录
+            entity = new ChatMemoryEntity();
+            entity.setConversationId(conversationId);
+            entity.setMessages(json);
+            entity.setCreatedAt(now);
+            entity.setUpdatedAt(now);
+            chatMemoryMapper.insert(entity);
         }
     }
 
