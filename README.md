@@ -30,3 +30,8 @@
 - ✅ 会话持久化（数据库存储）
 - ✅ MCP（模型调用协议）支持
 - ✅ 多轮对话能力
+
+
+目前测试的结果：<img width="1896" height="994" alt="image" src="https://github.com/user-attachments/assets/cdf01777-d50a-4170-9ca0-d2b1a35257cf" />
+
+实现了对话记忆，ReAct.优化对话记忆的持久化数据。主要是对存入数据做优化
