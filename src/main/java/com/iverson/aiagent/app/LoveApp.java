@@ -177,7 +177,7 @@ public class LoveApp {
                 .advisors(new MyLoggerAdvisor())
                 //知识库应用
 //                .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
-                .advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(loveAppVectorStore, "单身"))
+                .advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(pgVectorVectorStore, "单身"))
                 .call()
                 .chatResponse();
         String content = chatResponse.getResult().getOutput().getText();

@@ -1,20 +1,21 @@
-//package com.iverson.aiagent.rag;
-//
-//import org.springframework.ai.document.Document;
-//import org.springframework.ai.vectorstore.VectorStore;
-//import org.springframework.stereotype.Component;
-//
-//import java.util.List;
-//
-//@Component
-//class MyVectorStoreWriter {
-//    private final VectorStore vectorStore;
-//
-//    MyVectorStoreWriter(VectorStore vectorStore) {
-//        this.vectorStore = vectorStore;
-//    }
-//
-//    public void storeDocuments(List<Document> documents) {
-//        vectorStore.accept(documents);
-//    }
-//}
+package com.iverson.aiagent.rag;
+
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Component
+class MyVectorStoreWriter {
+    private final VectorStore vectorStore;
+
+    MyVectorStoreWriter(@Qualifier("pgVectorVectorStore") VectorStore vectorStore) {
+        this.vectorStore = vectorStore;
+    }
+
+    public void storeDocuments(List<Document> documents) {
+        vectorStore.accept(documents);
+    }
+}

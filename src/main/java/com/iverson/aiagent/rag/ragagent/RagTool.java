@@ -6,6 +6,7 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,7 +18,7 @@ public class RagTool implements Tool {
     private final ChatClient chatClient;
     
     @Autowired
-    public RagTool(ChatModel dashscopeChatModel, VectorStore vectorStore) {
+    public RagTool(ChatModel dashscopeChatModel, @Qualifier("pgVectorVectorStore") VectorStore vectorStore) {
         // 创建包含RAG增强的ChatClient
         Advisor ragAdvisor = LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(vectorStore, "active");
         this.chatClient = ChatClient.builder(dashscopeChatModel)
