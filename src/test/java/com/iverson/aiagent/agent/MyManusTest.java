@@ -1,7 +1,7 @@
 package com.iverson.aiagent.agent;
 
 
-import com.iverson.aiagent.agent.manyagent.impl.MyManus;
+import com.iverson.aiagent.agent.multi.impl.MyManus;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

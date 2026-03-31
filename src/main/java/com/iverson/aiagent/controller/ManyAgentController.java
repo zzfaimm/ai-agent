@@ -1,7 +1,7 @@
 package com.iverson.aiagent.controller;
 
 
-import com.iverson.aiagent.agent.manyagent.AiOrchestratorService;
+import com.iverson.aiagent.agent.multi.AiOrchestratorService;
 import com.iverson.aiagent.controller.dto.AiRequest;
 import com.iverson.aiagent.controller.dto.AiResponse;
 import org.springframework.web.bind.annotation.PostMapping;

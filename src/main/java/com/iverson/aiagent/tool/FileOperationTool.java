@@ -1,6 +1,6 @@
 package com.iverson.aiagent.tool;
 
-import com.iverson.aiagent.constant.FileConstant;
+import com.iverson.aiagent.config.FileConstant;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 

@@ -2,7 +2,7 @@ package com.iverson.aiagent.tool;
 
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.http.HttpUtil;
-import com.iverson.aiagent.constant.FileConstant;
+import com.iverson.aiagent.config.FileConstant;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
