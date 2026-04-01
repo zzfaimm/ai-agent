@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: ai-agent
+  profiles:
+    active: docker          # 明确激活 docker 配置
+  ai:
+    dashscope:
+      api-key: ${DASHSCOPE_API_KEY:}   # 从环境变量读取，冒号后可设默认值（留空表示必须提供）
+      chat:
+        options:
+          model: qwen-plus
+    mcp:
+      client:
+        request-timeout: 60000
+        sse:
+          connections:
+            server1:
+              url: http://mcp:8127     # 注意：使用 docker-compose 中的服务名 mcp，而非 localhost
+        stdio:
+          servers-configuration: classpath:mcp-servers.json   # 这个文件会打包进 JAR，里面可能也有占位符
+  datasource:
+    mysql:
+      url: jdbc:mysql://mysql:3306/ai_agent?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      username: ai_user
+      password: ${MYSQL_PASSWORD:}     # 对应 .env 中的 MYSQL_PASSWORD
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    pgvector:
+      jdbc-url: jdbc:postgresql://postgres:5432/ai_vector
+      username: ai_user
+      password: ${POSTGRES_PASSWORD:}  # 对应 .env 中的 POSTGRES_PASSWORD
+      driver-class-name: org.postgresql.Driver
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+# 可选：API 文档配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+# 其他可能用到的外部 API Key，也通过环境变量注入
+search-api:
+  api-key: ${SEARCH_API_KEY:}   # 如果有搜索 API 需要
+
+logging:
+  level:
+    com.iverson.aiagent: DEBUG   # 建议只调试自己的包，避免日志过多
+    org.springframework.ai: INFO
+    org.postgresql: INFO

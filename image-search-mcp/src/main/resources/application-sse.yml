@@ -7,3 +7,9 @@ spring:
         type: SYNC
         # sse
         stdio: false
+  application:
+    name: image-search-mcp
+  profiles:
+    active: sse
+server:
+  port: 8127

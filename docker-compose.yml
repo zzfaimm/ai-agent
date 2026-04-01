@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ai-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ai_agent
+      MYSQL_USER: ai_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ai_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --innodb-buffer-pool-size=128M --max_connections=50
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: pgvector/pgvector:pg15
+    container_name: ai-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ai_vector
+      POSTGRES_USER: ai_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vector_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: postgres -c shared_buffers=128MB -c max_connections=50
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_user -d ai_vector"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mcp:
+    build:
+      context: ./image-search-mcp
+      dockerfile: Dockerfile
+    container_name: ai-mcp
+    restart: always
+    environment:
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+    ports:
+      - "8127:8127"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-agent
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ai_agent?useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: ai_user
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ai_pass}
+      SPRING_VECTOR_STORE_URL: jdbc:postgresql://postgres:5432/ai_vector
+      SPRING_VECTOR_STORE_USERNAME: ai_user
+      SPRING_VECTOR_STORE_PASSWORD: ${POSTGRES_PASSWORD:-vector_pass}
+      DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      MCP_SERVICE_URL: http://mcp:8127
+    ports:
+      - "8123:8123"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mcp:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      agent:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  postgres_data:
