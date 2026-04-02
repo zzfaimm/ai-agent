@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // 创建 axios 实例
 const api = axios.create({
-  baseURL: 'http://localhost:8123/api',
+  baseURL: '/api',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json'
@@ -26,7 +26,7 @@ export const generateAgent = async (message) => {
 
 // LoveApp 流式聊天接口（SSE）
 export const loveAppChat = (message, chatId, onMessage, onError, onComplete) => {
-  const url = `http://localhost:8123/api/ai/love_app/chat/sse?message=${encodeURIComponent(message)}&chatId=${chatId}`;
+  const url = `/api/ai/love_app/chat/sse?message=${encodeURIComponent(message)}&chatId=${chatId}`;
   console.log('调用恋爱机器人接口:', url);
   const eventSource = new EventSource(url);
 
@@ -57,7 +57,7 @@ export const loveAppChat = (message, chatId, onMessage, onError, onComplete) => 
 
 // Manus 超级Agent（SSE）
 export const manusChat = (message, chatId, onMessage, onError, onComplete) => {
-  const url = `http://localhost:8123/api/ai/manus/chat?message=${encodeURIComponent(message)}&chatId=${chatId}`;
+  const url = `/api/ai/manus/chat?message=${encodeURIComponent(message)}&chatId=${chatId}`;
   console.log('调用超级智能体接口:', url);
   const eventSource = new EventSource(url);
 
