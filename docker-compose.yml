@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8.0
+    image: crpi-uafhl50w9jai9ifi.cn-guangzhou.personal.cr.aliyuncs.com/aiagentdep/mysql:8.0
     container_name: ai-mysql
     restart: always
     environment:
@@ -22,7 +22,7 @@ services:
       retries: 5
 
   postgres:
-    image: pgvector/pgvector:pg15
+    image: crpi-uafhl50w9jai9ifi.cn-guangzhou.personal.cr.aliyuncs.com/aiagentdep/pgvector:pg15
     container_name: ai-postgres
     restart: always
     environment:
@@ -47,7 +47,11 @@ services:
     container_name: ai-mcp
     restart: always
     environment:
+      SPRING_PROFILES_ACTIVE: sse
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
+      # 新增健康检查配置，指定端口和路径
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info
+      MANAGEMENT_SERVER_PORT: 8127
     ports:
       - "8127:8127"
     depends_on:
@@ -55,6 +59,11 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8127/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   agent:
     build:
@@ -67,9 +76,15 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/ai_agent?useSSL=false&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: ai_user
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ai_pass}
+      # 重点：添加这一行，让 Spring 能找到 POSTGRES_PASSWORD 环境变量
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_DATASOURCE_PGVECTOR_PASSWORD: ${POSTGRES_PASSWORD}   # 新增
       SPRING_VECTOR_STORE_URL: jdbc:postgresql://postgres:5432/ai_vector
       SPRING_VECTOR_STORE_USERNAME: ai_user
       SPRING_VECTOR_STORE_PASSWORD: ${POSTGRES_PASSWORD:-vector_pass}
+      SPRING_AI_VECTORSTORE_PGVECTOR_SCHEMA: public        # 新增
+      SPRING_AI_VECTORSTORE_PGVECTOR_TABLE_NAME: vector_store   # 新增
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY}
       MCP_SERVICE_URL: http://mcp:8127
     ports:
@@ -81,6 +96,11 @@ services:
         condition: service_healthy
       mcp:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'java.*app.jar' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
     build:

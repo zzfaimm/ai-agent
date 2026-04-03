@@ -16,11 +16,9 @@ spring:
           connections:
             server1:
               url: http://mcp:8127     # 注意：使用 docker-compose 中的服务名 mcp，而非 localhost
-#        stdio:
-#          servers-configuration: classpath:mcp-servers.json   # 这个文件会打包进 JAR，里面可能也有占位符
   datasource:
     mysql:
-      url: jdbc:mysql://mysql:3306/ai_agent?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+      jdbc-url: jdbc:mysql://mysql:3306/ai_agent?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       username: ai_user
       password: ${MYSQL_PASSWORD:}     # 对应 .env 中的 MYSQL_PASSWORD
       driver-class-name: com.mysql.cj.jdbc.Driver
