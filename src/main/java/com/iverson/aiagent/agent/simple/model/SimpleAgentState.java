@@ -1,4 +1,4 @@
-package com.iverson.aiagent.agent.simpleagent.model;
+package com.iverson.aiagent.agent.simple.model;
 
 /**
  * @ClassName: AgentState

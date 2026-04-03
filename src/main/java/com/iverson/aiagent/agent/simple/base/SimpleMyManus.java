@@ -1,4 +1,4 @@
-package com.iverson.aiagent.agent.simpleagent.base;
+package com.iverson.aiagent.agent.simple.base;
 
 import com.iverson.aiagent.advisor.MyLoggerAdvisor;
 import org.springframework.ai.chat.client.ChatClient;

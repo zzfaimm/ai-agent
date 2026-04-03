@@ -1,7 +1,7 @@
-package com.iverson.aiagent.agent.simpleagent.base;
+package com.iverson.aiagent.agent.simple.base;
 
 import com.iverson.aiagent.agent.multi.model.SharedState;
-import com.iverson.aiagent.agent.simpleagent.model.SimpleAgentState;
+import com.iverson.aiagent.agent.simple.model.SimpleAgentState;
 import com.iverson.aiagent.chatmemory.DatabaseChatMemory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -60,12 +60,17 @@ public abstract class SimpleBaseAgent {
 
     /**
      * 初始化对话记忆
+     * 遵循阿里巴巴编程规范：先创建后使用，确保数据一致性。
+     * @param chatMemory 对话记忆实例
+     * @param conversationId 对话ID
      */
     public void initChatMemory(DatabaseChatMemory chatMemory, String conversationId) {
         this.chatMemory = chatMemory;
         this.conversationId = conversationId;
-        // 加载历史消息
+        // 先确保conversationId存在，避免保存时找不到记录
         if (conversationId != null) {
+            chatMemory.ensureConversationExists(conversationId);
+            // 加载历史消息
             importantMessageList = chatMemory.get(conversationId, 100);
             // 将重要消息加载到上下文
             messageList.addAll(importantMessageList);

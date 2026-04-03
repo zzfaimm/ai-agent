@@ -95,6 +95,32 @@ public class DatabaseChatMemory implements ChatMemory {
     }
 
     /**
+     * 确保conversationId存在，如果不存在则创建空记录。
+     * 遵循阿里巴巴编程规范：方法命名清晰、职责单一、防御性编程。
+     * @param conversationId 对话ID
+     */
+    public void ensureConversationExists(String conversationId) {
+        try {
+            QueryWrapper<ChatMemoryEntity> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("conversation_id", conversationId);
+            ChatMemoryEntity entity = chatMemoryMapper.selectOne(queryWrapper);
+            
+            if (entity == null) {
+                // 创建空记录
+                entity = new ChatMemoryEntity();
+                entity.setConversationId(conversationId);
+                entity.setMessages("[]");
+                entity.setCreatedAt(LocalDateTime.now());
+                entity.setUpdatedAt(LocalDateTime.now());
+                chatMemoryMapper.insert(entity);
+                logger.info("Created new conversation record for conversationId: {}", conversationId);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to ensure conversation exists for conversationId: {}", conversationId, e);
+        }
+    }
+
+    /**
      * 将 JSON 字符串反序列化为 List<Message>。
      */
     private List<Message> deserializeMessages(String json) {

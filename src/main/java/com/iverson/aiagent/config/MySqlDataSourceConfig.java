@@ -1,7 +1,7 @@
 package com.iverson.aiagent.config;
 
+import com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -21,13 +21,30 @@ public class MySqlDataSourceConfig {
     public DataSource mysqlDataSource() {
         return DataSourceBuilder.create().build();
     }
-
     @Bean(name = "mysqlSqlSessionFactory")
     public SqlSessionFactory mysqlSqlSessionFactory(
             @Qualifier("mysqlDataSource") DataSource dataSource) throws Exception {
 
-        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+        // 使用 MybatisSqlSessionFactoryBean，而不是 SqlSessionFactoryBean
+        MybatisSqlSessionFactoryBean factoryBean = new MybatisSqlSessionFactoryBean();
         factoryBean.setDataSource(dataSource);
+
+        // 可选：设置实体类包路径，便于别名
+        factoryBean.setTypeAliasesPackage("com.iverson.aiagent.chatmemory.entity");
+
+        // 如果你有 MyBatis-Plus 全局配置，可以在这里设置
+        // GlobalConfig globalConfig = new GlobalConfig();
+        // factoryBean.setGlobalConfig(globalConfig);
+
         return factoryBean.getObject();
     }
+
+//    @Bean(name = "mysqlSqlSessionFactory")
+//    public SqlSessionFactory mysqlSqlSessionFactory(
+//            @Qualifier("mysqlDataSource") DataSource dataSource) throws Exception {
+//
+//        SqlSessionFactoryBean factoryBean = new SqlSessionFactoryBean();
+//        factoryBean.setDataSource(dataSource);
+//        return factoryBean.getObject();
+//    }
 }

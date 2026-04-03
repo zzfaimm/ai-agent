@@ -1,4 +1,4 @@
-FROM openjdk:21-slim
+FROM registry.cn-hangzhou.aliyuncs.com/acs/openjdk:21-jdk
 WORKDIR /app
 COPY target/image-search-mcp-*.jar app.jar
 ENV JAVA_OPTS="-Xmx256m -Xms128m"

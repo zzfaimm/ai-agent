@@ -188,12 +188,6 @@
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
-        <!-- MyBatis Spring Boot Starter，提供 SqlSessionFactory 等 -->
-        <dependency>
-            <groupId>org.mybatis.spring.boot</groupId>
-            <artifactId>mybatis-spring-boot-starter</artifactId>
-            <version>3.0.3</version>  <!-- 注意与 Spring Boot 版本兼容 -->
-        </dependency>
 
         <!-- PostgreSQL 驱动 -->
         <dependency>

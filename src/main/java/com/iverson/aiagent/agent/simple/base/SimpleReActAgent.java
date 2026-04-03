@@ -1,4 +1,4 @@
-package com.iverson.aiagent.agent.simpleagent.base;
+package com.iverson.aiagent.agent.simple.base;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

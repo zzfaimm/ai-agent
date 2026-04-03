@@ -1,4 +1,4 @@
-FROM openjdk:21-slim
+FROM registry.cn-hangzhou.aliyuncs.com/acs/openjdk:21-jdk
 WORKDIR /app
 COPY target/ai-agent-system-*.jar app.jar
 ENV JAVA_OPTS="-Xmx512m -Xms256m -XX:+UseG1GC"

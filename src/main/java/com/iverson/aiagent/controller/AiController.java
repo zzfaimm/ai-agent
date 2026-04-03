@@ -1,7 +1,7 @@
 package com.iverson.aiagent.controller;
 
 
-import com.iverson.aiagent.agent.simpleagent.base.SimpleMyManus;
+import com.iverson.aiagent.agent.simple.base.SimpleMyManus;
 import com.iverson.aiagent.app.LoveApp;
 import com.iverson.aiagent.chatmemory.DatabaseChatMemory;
 import com.iverson.aiagent.chatmemory.mapper.ChatMemoryMapper;

@@ -1,4 +1,4 @@
-package com.iverson.aiagent.agent.simpleagent.base;
+package com.iverson.aiagent.agent.simple.base;
 
 import cn.hutool.core.collection.CollUtil;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatOptions;
@@ -16,7 +16,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.model.tool.ToolExecutionResult;
 import org.springframework.ai.tool.ToolCallback;
-import com.iverson.aiagent.agent.simpleagent.model.SimpleAgentState;
+import com.iverson.aiagent.agent.simple.model.SimpleAgentState;
 import java.util.List;
 import java.util.stream.Collectors;
 
